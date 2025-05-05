@@ -1,0 +1,30 @@
+openpgpkey.kareem.one {
+	route /.well-known/openpgpkey/kareem.one/policy {
+		root * /var/www/kareem/.well-known/openpgpkey
+		file_server
+	}
+
+	route /.well-known/openpgpkey/kareem.one/hu/1quwiwju5h6jdsqfj1tc6kzekjkniwwr {
+		rewrite * /shaquille@kareem.one.pub
+		root * /var/www/kareem/.well-known/openpgpkey/hu/1quwiwju5h6jdsqfj1tc6kzekjkniwwr
+		header Content-Type "application/octet-stream"
+		file_server
+	}
+}
+
+kareem.one {
+	route /.well-known/openpgpkey/policy {
+		root * /var/www/kareem/.well-known/openpgpkey
+		file_server
+	}
+
+	route /.well-known/openpgpkey/hu/1quwiwju5h6jdsqfj1tc6kzekjkniwwr {
+		rewrite * /shaquille@kareem.one.pub
+		root * /var/www/kareem/.well-known/openpgpkey/hu/1quwiwju5h6jdsqfj1tc6kzekjkniwwr
+		header Content-Type "application/octet-stream"
+		header Access-Control-Allow-Origin "*"
+		header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+		header Access-Control-Allow-Headers "Content-Type, Authorization"
+		file_server
+	}
+}
