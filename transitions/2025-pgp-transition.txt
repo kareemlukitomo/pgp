@@ -1,0 +1,35 @@
+# PGP Key Transition Statement
+
+I, Shaquille Ramadhan Kareem, am transitioning to a new GPG key as of 2025-05-08.
+This is a planned rotation for improved key hygiene and forward security.
+
+The new key will be used for all future communications, Git signatures, and encryption.
+
+## New Primary Key (Valid)
+Fingerprint: 1318 540F 267F 1FF5 56A0  07CC 6953 A5B6 9805 CDF8
+Type: ed25519 [C]
+UIDs:
+- shaquille@kareem.one
+- kareem@lukitomo.com
+- kareem.lukitomo@gmail.com
+- kareem@mola.tv
+
+## Old Key (Revoked)
+Fingerprint: 57CA 390B 9058 56D1 9993 0D8E 1AF3 A11F 4741 A16A
+Status: Revoked after 2025-05-08
+This key should no longer be used.
+
+## Verification & Source
+
+This statement is signed with my **old key**, and both old and new public keys are available at:
+- https://kareem.one/pgp/
+- https://git.kareem.one/pgp/
+- https://github.com/kareemlukitomo/pgp/
+
+For verification:
+- Import the old key: `gpg --import old-revoked-4741A16A.asc`
+- Import the new key: `gpg --import public-masterkey.asc`
+- Check signature: `gpg --verify 2025-pgp-transition.txt.sig 2025-pgp-transition.txt`
+- Verify the new signature matches the newly imported public-masterkey.asc
+
+Signed: 2025-05-08
