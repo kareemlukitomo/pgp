@@ -23,7 +23,7 @@ You should receive a JSON response like:
   "direct_method": {
     "uri": "https://kareem.one/.well-known/openpgpkey/hu/1quwiwju5h6jdsqfj1tc6kzekjkniwwr?l=shaquille",
     "key": {
-      "fingerprint": "57CA390B905856D199930D8E1AF3A11F4741A16A",
+      "fingerprint": "1318540F267F1FF556A007CC6953A5B69805CDF8",
       "revocation_status": "Not as far as we know"
     },
     "errors": []
@@ -31,9 +31,11 @@ You should receive a JSON response like:
   "advanced_method": {
     "uri": "https://openpgpkey.kareem.one/.well-known/openpgpkey/kareem.one/hu/1quwiwju5h6jdsqfj1tc6kzekjkniwwr?l=shaquille",
     "key": {
-      "fingerprint": "57CA390B905856D199930D8E1AF3A11F4741A16A",
+      "fingerprint": "1318540F267F1FF556A007CC6953A5B69805CDF8",
       "revocation_status": "Not as far as we know"
     },
     "errors": []
   }
 }
+```
+
