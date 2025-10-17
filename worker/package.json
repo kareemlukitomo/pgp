@@ -1,0 +1,17 @@
+{
+  "name": "pgp-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler publish",
+    "kv:sync": "tsx scripts/seed-kv.ts"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251011.0",
+    "@types/node": "^24.8.1",
+    "tsx": "^4.7.0",
+    "wrangler": "^4.43.0"
+  }
+}

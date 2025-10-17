@@ -1,0 +1,27 @@
+# Fill in the `id` / `preview_id` values after creating the KV namespace:
+#   wrangler kv:namespace create PGP_ASSETS
+name = "pgp-worker"
+main = "src/index.ts"
+compatibility_date = "2025-01-15"
+routes = [{ pattern = "pgp.kareem.one/*", zone_name = "kareem.one" }]
+
+[[kv_namespaces]]
+binding = "PGP_ASSETS"
+id = "ca0821d6fdc544578cb211d85e9272a6"
+
+[vars]
+GITHUB_MIRROR_BASE = "https://raw.githubusercontent.com/kareemlukitomo/pgp/main"
+ALLOWED_HOSTS = "pgp.kareem.one,openpgpkey.kareem.one"
+ROOT_OBJECT = "/public-masterkey.asc"
+
+[[env.preview.kv_namespaces]]
+binding = "PGP_ASSETS"
+id = "0c90a150dce14b4f85d121a1791fd1de"
+
+[env.preview.vars]
+GITHUB_MIRROR_BASE = "https://raw.githubusercontent.com/kareemlukitomo/pgp/main"
+ALLOWED_HOSTS = "pgp-worker-preview.kareem-fcd.workers.dev"
+ROOT_OBJECT = "/public-masterkey.asc"
+
+# Optional route configuration example (commented out):
+# routes = [{ pattern = "pgp.kareem.one/*", zone_name = "kareem.one" }]

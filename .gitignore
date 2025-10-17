@@ -1,4 +1,6 @@
 # ---> GPG
 secring.*
+**/*/node_modules
+**/*/.wrangler
 
 
