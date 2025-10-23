@@ -1,0 +1,56 @@
+name: Refresh PGP Worker Cache
+
+on:
+  # Trigger when pushing changes to public-masterkey.asc or transitions
+  push:
+    branches:
+      - main
+    paths:
+      - 'public-masterkey.asc'
+      - 'transitions/**'
+      - '.well-known/**'
+      - 'policy'
+  
+  # Allow manual trigger with 1-click from Actions tab
+  workflow_dispatch:
+
+jobs:
+  invalidate-cache:
+    runs-on: ubuntu-latest
+    name: Clear Cloudflare KV Cache
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: |
+          cd worker
+          npm ci
+      
+      - name: Generate KV assets manifest
+        run: |
+          cd worker
+          npm run kv:sync -- --out dist/kv-assets.json
+      
+      - name: Bulk upload to Cloudflare KV (Production)
+        run: |
+          cd worker
+          npx wrangler kv bulk put dist/kv-assets.json \
+            --binding=PGP_ASSETS \
+            --remote \
+            --preview=false
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      
+      - name: Summary
+        run: |
+          echo "✅ Cache refreshed for pgp.kareem.one"
+          echo "🔄 Updated keys are now live"
+          echo "📝 Changes: ${{ github.event.head_commit.message }}"
+

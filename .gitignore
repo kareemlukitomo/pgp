@@ -3,4 +3,7 @@ secring.*
 **/*/node_modules
 **/*/.wrangler
 
+# Build artifacts
+worker/dist/
+
 
