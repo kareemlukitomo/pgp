@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
+
+# PGP User ID Revocation Statement
+
+I, Shaquille Ramadhan Kareem, am revoking the kareem@mola.tv User ID from my GPG key as of 2025-10-23.
+This email address is no longer active as I am no longer associated with that organization.
+
+## Primary Key (Still Valid)
+Fingerprint: 1318 540F 267F 1FF5 56A0  07CC 6953 A5B6 9805 CDF8
+Type: ed25519 [SC]
+
+## Revoked UID
+Email: kareem@mola.tv
+Status: Revoked after 2025-10-23
+This email should no longer be used for encrypted communications or verification.
+
+## Remaining Valid UIDs
+1. shaquille@kareem.one (primary)
+2. kareem@lukitomo.com
+3. kareem.lukitomo@gmail.com
+
+## Verification & Source
+
+This statement is signed with my **current master key**, and the updated public key is available at:
+1. https://github.com/kareemlukitomo/pgp/
+
+For verification:
+1. Import the updated key: `gpg --import public-masterkey.asc`
+2. Check signature: `gpg --verify 2025-uid-revocation-mola-tv.txt`
+3. Verify this statement signature matches the master key
+4. Check that kareem@mola.tv is marked as revoked: `gpg --list-keys shaquille@kareem.one`
+
+Please use one of the remaining valid email addresses for all future communications.
+
+Signed: 2025-10-23
+-----BEGIN PGP SIGNATURE-----
+
+iHUEARYIAB0WIQQYABPcPrJ0sg0qDsQgvSZrynNx6AUCaPmGPwAKCRAgvSZrynNx
+6Nl4AQDtL/2LXn/YQbeoITg08BgktjqWsJyPL0i2ekzN5eNV0wEA6r68BKe4hUwx
+WTqtBiPW4mbZdbgHTFbdkAHMc+HEBQQ=
+=7xkq
+-----END PGP SIGNATURE-----
