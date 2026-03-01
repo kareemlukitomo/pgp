@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler publish",
-    "kv:sync": "tsx scripts/seed-kv.ts"
+    "kv:sync": "tsx scripts/seed-kv.ts",
+    "kv:validate": "tsx scripts/validate-kv-manifest.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20251011.0",

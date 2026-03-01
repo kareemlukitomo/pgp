@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 type Asset = {
   key: string;
   value: string;
+  base64: true;
   metadata: {
     contentType: string;
   };
@@ -25,7 +26,7 @@ const assetEntries: Array<
 
 async function main(): Promise<void> {
   const dest = resolveOutputPath();
-  const assets: Asset[] = [];
+  const assets = new Map<string, Asset>();
 
   for (const entry of assetEntries) {
     const absolute = path.join(repoRoot, entry.fsPath);
@@ -36,20 +37,22 @@ async function main(): Promise<void> {
 
     if ("kvKey" in entry) {
       const asset = await loadAsset(absolute, entry.kvKey);
-      assets.push(asset);
+      registerAsset(assets, asset);
       continue;
     }
 
     const collected = await loadDirectoryAssets(absolute, entry.kvPrefix);
-    assets.push(...collected);
+    for (const asset of collected) {
+      registerAsset(assets, asset);
+    }
   }
 
-  const json = JSON.stringify(assets, null, 2);
+  const json = JSON.stringify(Array.from(assets.values()), null, 2);
 
   if (dest) {
     await ensureParent(dest);
     await writeFile(dest, json, "utf8");
-    console.log(`Wrote ${assets.length} assets to ${dest}`);
+    console.log(`Wrote ${assets.size} assets to ${dest}`);
   } else {
     process.stdout.write(json);
   }
@@ -73,10 +76,11 @@ async function existsPath(target: string): Promise<boolean> {
 }
 
 async function loadAsset(fsPath: string, kvKey: string): Promise<Asset> {
-  const content = await readFile(fsPath, "utf8");
+  const content = await readFile(fsPath);
   return {
     key: kvKey,
-    value: content,
+    value: content.toString("base64"),
+    base64: true,
     metadata: {
       contentType: inferContentType(kvKey),
     },
@@ -100,10 +104,38 @@ async function loadDirectoryAssets(
       const kvKey = `${prefix}/${entry.name}`;
       const asset = await loadAsset(absolute, kvKey);
       assets.push(asset);
+      assets.push(...buildWkdAliases(asset));
     }
   }
 
   return assets;
+}
+
+function buildWkdAliases(asset: Asset): Asset[] {
+  const match = asset.key.match(
+    /^\/\.well-known\/openpgpkey\/hu\/([^/]+)\/([^/]+)\.pub$/,
+  );
+  if (!match) {
+    return [];
+  }
+
+  const hashedLocalPart = match[1];
+  const email = match[2].toLowerCase();
+  const atIndex = email.lastIndexOf("@");
+  if (atIndex === -1 || atIndex === email.length - 1) {
+    return [];
+  }
+
+  const domain = email.slice(atIndex + 1);
+  const aliases = [
+    `/.well-known/openpgpkey/hu/${hashedLocalPart}`,
+    `/.well-known/openpgpkey/${domain}/hu/${hashedLocalPart}`,
+  ];
+
+  return aliases.map((aliasKey) => ({
+    ...asset,
+    key: aliasKey,
+  }));
 }
 
 function inferContentType(pathname: string): string {
@@ -121,6 +153,26 @@ function inferContentType(pathname: string): string {
 async function ensureParent(filePath: string): Promise<void> {
   const parent = path.dirname(filePath);
   await mkdir(parent, { recursive: true });
+}
+
+function registerAsset(
+  target: Map<string, Asset>,
+  incoming: Asset,
+): void {
+  const existing = target.get(incoming.key);
+  if (!existing) {
+    target.set(incoming.key, incoming);
+    return;
+  }
+
+  if (
+    existing.value !== incoming.value ||
+    existing.metadata.contentType !== incoming.metadata.contentType
+  ) {
+    throw new Error(
+      `Conflicting asset definitions for key "${incoming.key}"`,
+    );
+  }
 }
 
 main().catch((error) => {

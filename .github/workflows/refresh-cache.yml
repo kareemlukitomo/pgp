@@ -1,7 +1,7 @@
 name: Refresh PGP Worker Cache
 
 on:
-  # Trigger when pushing changes to public-masterkey.asc or transitions
+  # Trigger when pushing key material, worker cache logic, or this workflow itself.
   push:
     branches:
       - main
@@ -10,6 +10,8 @@ on:
       - 'transitions/**'
       - '.well-known/**'
       - 'policy'
+      - 'worker/**'
+      - '.github/workflows/refresh-cache.yml'
   
   # Allow manual trigger with 1-click from Actions tab
   workflow_dispatch:
@@ -20,6 +22,16 @@ jobs:
     name: Clear Cloudflare KV Cache
     
     steps:
+      - name: Guardrail - trusted actor
+        env:
+          TRUSTED_ACTOR: kareemlukitomo
+        run: |
+          if [ "${{ github.actor }}" != "${TRUSTED_ACTOR}" ]; then
+            echo "::error::Untrusted actor '${{ github.actor }}'. Expected '${TRUSTED_ACTOR}'."
+            echo "::error::Stopping workflow to avoid unauthorized cache mutation."
+            exit 1
+          fi
+
       - name: Checkout repository
         uses: actions/checkout@v4
       
@@ -37,6 +49,11 @@ jobs:
         run: |
           cd worker
           npm run kv:sync -- --out dist/kv-assets.json
+
+      - name: Validate manifest integrity
+        run: |
+          cd worker
+          npm run kv:validate -- --manifest dist/kv-assets.json
       
       - name: Bulk upload to Cloudflare KV (Production)
         run: |
@@ -53,4 +70,3 @@ jobs:
           echo "✅ Cache refreshed for pgp.kareem.one"
           echo "🔄 Updated keys are now live"
           echo "📝 Changes: ${{ github.event.head_commit.message }}"
-

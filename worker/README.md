@@ -6,8 +6,10 @@ Cloudflare Worker for `pgp.kareem.one` that serves the public key material and W
 
 - Serves static PGP assets (e.g. `/shaquille.asc`, `/.well-known/openpgpkey/...`) with CORS and WKD-friendly headers.
 - Reads from the `PGP_ASSETS` KV namespace first; on a miss it fetches from the public GitHub mirror and writes the response back to KV.
+- Stores KV payloads as base64-encoded bytes in bulk manifests to preserve binary WKD packets.
 - Keeps assets in KV for 30 days by default — rotation workflows refresh the content ahead of key changes.
 - Requests to `/` are rewritten to the asset defined by `ROOT_OBJECT` (defaults to `/public-masterkey.asc`) and returned with `text/plain` so the root URL streams the ASCII-armored key directly.
+- WKD `hu/<hash>` aliases are generated automatically from `hu/<hash>/<email>.pub` files so standard WKD lookup URLs resolve without web-server rewrites.
 
 ## Setup
 
@@ -25,7 +27,10 @@ Cloudflare Worker for `pgp.kareem.one` that serves the public key material and W
    Copy the resulting IDs into `wrangler.toml` (`id` for production, `preview_id` for preview).
 
 3. (Optional but recommended) Restrict traffic to the intended hostnames by editing `ALLOWED_HOSTS` in `wrangler.toml`.
-4. Point DNS (`pgp CNAME pgp-worker.<account>.workers.dev`) and ensure the route in `wrangler.toml` covers `pgp.kareem.one/*`.
+4. Point DNS (`pgp CNAME pgp-worker.<account>.workers.dev`) and ensure routes in `wrangler.toml` cover:
+   - `pgp.kareem.one/*`
+   - `kareem.one/.well-known/openpgpkey/*`
+   - `openpgpkey.kareem.one/.well-known/openpgpkey/*`
 
 ## Syncing Assets
 
@@ -34,6 +39,7 @@ Generate a KV bulk upload manifest from the repository contents:
 ```bash
 cd worker
 npm run kv:sync -- --out dist/kv-assets.json
+npm run kv:validate -- --manifest dist/kv-assets.json
 ```
 
 Then push to KV (remote namespaces):

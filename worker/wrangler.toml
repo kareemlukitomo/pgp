@@ -3,7 +3,11 @@
 name = "pgp-worker"
 main = "src/index.ts"
 compatibility_date = "2025-01-15"
-routes = [{ pattern = "pgp.kareem.one/*", zone_name = "kareem.one" }]
+routes = [
+  { pattern = "pgp.kareem.one/*", zone_name = "kareem.one" },
+  { pattern = "kareem.one/.well-known/openpgpkey/*", zone_name = "kareem.one" },
+  { pattern = "openpgpkey.kareem.one/.well-known/openpgpkey/*", zone_name = "kareem.one" },
+]
 
 [[kv_namespaces]]
 binding = "PGP_ASSETS"
@@ -11,7 +15,7 @@ id = "ca0821d6fdc544578cb211d85e9272a6"
 
 [vars]
 GITHUB_MIRROR_BASE = "https://raw.githubusercontent.com/kareemlukitomo/pgp/main"
-ALLOWED_HOSTS = "pgp.kareem.one,openpgpkey.kareem.one"
+ALLOWED_HOSTS = "kareem.one,pgp.kareem.one,openpgpkey.kareem.one"
 ROOT_OBJECT = "/public-masterkey.asc"
 
 [[env.preview.kv_namespaces]]
