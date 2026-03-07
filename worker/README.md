@@ -9,7 +9,7 @@ Cloudflare Worker for `pgp.kareem.one` that serves the public key material and W
 - Stores KV payloads as base64-encoded bytes in bulk manifests to preserve binary WKD packets.
 - Keeps assets in KV for 30 days by default — rotation workflows refresh the content ahead of key changes.
 - Requests to `/` are rewritten to the asset defined by `ROOT_OBJECT` (defaults to `/public-masterkey.asc`) and returned with `text/plain` so the root URL streams the ASCII-armored key directly.
-- WKD `hu/<hash>` aliases are generated automatically from `hu/<hash>/<email>.pub` files so standard WKD lookup URLs resolve without web-server rewrites.
+- WKD `hu/<hash>` aliases are generated automatically from `hu/<hash>/<email>.pub` files, and shared `host` / `policy` files are aliased into the advanced `/<domain>/...` paths, so standard WKD lookup URLs resolve without web-server rewrites.
 
 ## Setup
 

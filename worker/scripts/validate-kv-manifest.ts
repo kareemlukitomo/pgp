@@ -10,6 +10,10 @@ type Asset = {
   };
 };
 
+const WKD_USER_KEY_REGEX =
+  /^\/\.well-known\/openpgpkey\/hu\/([^/]+)\/([^/]+)\.pub$/;
+const WKD_SHARED_FILES = ["host", "policy"] as const;
+
 async function main(): Promise<void> {
   const manifestPath = resolveManifestPath();
   const raw = await readFile(manifestPath, "utf8");
@@ -26,27 +30,25 @@ async function main(): Promise<void> {
     keys.add(asset.key);
   }
 
-  const userKeyRegex =
-    /^\/\.well-known\/openpgpkey\/hu\/([^/]+)\/([^/]+)\.pub$/;
-  const userKeys = assets.filter((entry) => userKeyRegex.test(entry.key));
+  const userKeys = assets.filter((entry) => WKD_USER_KEY_REGEX.test(entry.key));
   if (userKeys.length === 0) {
     throw new Error("No WKD user key entries found in manifest");
   }
 
+  const domains = new Set<string>();
   for (const entry of userKeys) {
-    const match = entry.key.match(userKeyRegex);
+    const match = entry.key.match(WKD_USER_KEY_REGEX);
     if (!match) {
       continue;
     }
 
     const hashedLocalPart = match[1];
-    const email = match[2].toLowerCase();
-    const atIndex = email.lastIndexOf("@");
-    if (atIndex === -1 || atIndex === email.length - 1) {
+    const domain = getEmailDomain(match[2]);
+    if (!domain) {
       throw new Error(`Invalid WKD user filename: ${entry.key}`);
     }
 
-    const domain = email.slice(atIndex + 1);
+    domains.add(domain);
     const requiredAliases = [
       `/.well-known/openpgpkey/hu/${hashedLocalPart}`,
       `/.well-known/openpgpkey/${domain}/hu/${hashedLocalPart}`,
@@ -61,9 +63,35 @@ async function main(): Promise<void> {
     }
   }
 
+  for (const fileName of WKD_SHARED_FILES) {
+    const sourceKey = `/.well-known/openpgpkey/${fileName}`;
+    if (!keys.has(sourceKey)) {
+      continue;
+    }
+
+    for (const domain of domains) {
+      const alias = `/.well-known/openpgpkey/${domain}/${fileName}`;
+      if (!keys.has(alias)) {
+        throw new Error(
+          `Missing WKD shared alias "${alias}" derived from "${sourceKey}"`,
+        );
+      }
+    }
+  }
+
   console.log(
     `Manifest validation passed: ${assets.length} assets, ${userKeys.length} WKD user keys`,
   );
+}
+
+function getEmailDomain(email: string): string | null {
+  const normalized = email.toLowerCase();
+  const atIndex = normalized.lastIndexOf("@");
+  if (atIndex === -1 || atIndex === normalized.length - 1) {
+    return null;
+  }
+
+  return normalized.slice(atIndex + 1);
 }
 
 function resolveManifestPath(): string {

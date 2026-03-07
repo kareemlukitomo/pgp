@@ -11,6 +11,10 @@ type Asset = {
   };
 };
 
+const WKD_USER_KEY_REGEX =
+  /^\/\.well-known\/openpgpkey\/hu\/([^/]+)\/([^/]+)\.pub$/;
+const WKD_SHARED_FILES = ["host", "policy"] as const;
+
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(currentDir, "..", "..");
 
@@ -45,6 +49,10 @@ async function main(): Promise<void> {
     for (const asset of collected) {
       registerAsset(assets, asset);
     }
+  }
+
+  for (const asset of buildWkdSharedAliases(assets)) {
+    registerAsset(assets, asset);
   }
 
   const json = JSON.stringify(Array.from(assets.values()), null, 2);
@@ -112,21 +120,17 @@ async function loadDirectoryAssets(
 }
 
 function buildWkdAliases(asset: Asset): Asset[] {
-  const match = asset.key.match(
-    /^\/\.well-known\/openpgpkey\/hu\/([^/]+)\/([^/]+)\.pub$/,
-  );
+  const match = asset.key.match(WKD_USER_KEY_REGEX);
   if (!match) {
     return [];
   }
 
   const hashedLocalPart = match[1];
-  const email = match[2].toLowerCase();
-  const atIndex = email.lastIndexOf("@");
-  if (atIndex === -1 || atIndex === email.length - 1) {
+  const domain = getEmailDomain(match[2]);
+  if (!domain) {
     return [];
   }
 
-  const domain = email.slice(atIndex + 1);
   const aliases = [
     `/.well-known/openpgpkey/hu/${hashedLocalPart}`,
     `/.well-known/openpgpkey/${domain}/hu/${hashedLocalPart}`,
@@ -136,6 +140,61 @@ function buildWkdAliases(asset: Asset): Asset[] {
     ...asset,
     key: aliasKey,
   }));
+}
+
+function buildWkdSharedAliases(
+  assets: ReadonlyMap<string, Asset>,
+): Asset[] {
+  const domains = collectWkdDomains(assets.values());
+  if (domains.length === 0) {
+    return [];
+  }
+
+  const aliases: Asset[] = [];
+  for (const fileName of WKD_SHARED_FILES) {
+    const sourceKey = `/.well-known/openpgpkey/${fileName}`;
+    const sourceAsset = assets.get(sourceKey);
+    if (!sourceAsset) {
+      continue;
+    }
+
+    for (const domain of domains) {
+      aliases.push({
+        ...sourceAsset,
+        key: `/.well-known/openpgpkey/${domain}/${fileName}`,
+      });
+    }
+  }
+
+  return aliases;
+}
+
+function collectWkdDomains(assets: Iterable<Asset>): string[] {
+  const domains = new Set<string>();
+
+  for (const asset of assets) {
+    const match = asset.key.match(WKD_USER_KEY_REGEX);
+    if (!match) {
+      continue;
+    }
+
+    const domain = getEmailDomain(match[2]);
+    if (domain) {
+      domains.add(domain);
+    }
+  }
+
+  return Array.from(domains).sort();
+}
+
+function getEmailDomain(email: string): string | null {
+  const normalized = email.toLowerCase();
+  const atIndex = normalized.lastIndexOf("@");
+  if (atIndex === -1 || atIndex === normalized.length - 1) {
+    return null;
+  }
+
+  return normalized.slice(atIndex + 1);
 }
 
 function inferContentType(pathname: string): string {
