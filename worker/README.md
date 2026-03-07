@@ -53,13 +53,11 @@ The worker will now serve content directly from KV. When new keys or WKD files l
 
 > The sync script skips files that are absent (e.g. `shaquille.asc`), so it is safe to run before every rotation.
 
+Pushes to `main` that touch key material, WKD files, or worker code also trigger [`../.github/workflows/refresh-cache.yml`](../.github/workflows/refresh-cache.yml), which regenerates the manifest and bulk-uploads the production KV cache automatically.
+
 ## Developing & Deploying
 
 - `npm run dev` – local development (requires `wrangler` authentication).
 - `npm run deploy` – publish the worker once all bindings are configured.
 
 The worker mirrors from `https://raw.githubusercontent.com/kareemlukitomo/pgp/main` by default. Override `GITHUB_MIRROR_BASE` in `wrangler.toml` if you prefer another mirror (e.g. a Forgejo origin).
-
-## TODO
-
-- Add an automated sync hook (GitHub Action / cron-triggered worker) that refreshes KV from the repo whenever `public-masterkey.asc` or WKD assets change.
