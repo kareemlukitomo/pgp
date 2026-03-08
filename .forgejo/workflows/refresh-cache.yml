@@ -11,7 +11,7 @@ on:
       - '.well-known/**'
       - 'policy'
       - 'worker/**'
-      - '.github/workflows/refresh-cache.yml'
+      - '.forgejo/workflows/refresh-cache.yml'
   
   # Allow manual trigger with 1-click from Actions tab
   workflow_dispatch:
