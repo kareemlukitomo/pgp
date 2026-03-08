@@ -24,13 +24,18 @@ jobs:
     steps:
       - name: Guardrail - trusted actor
         env:
-          TRUSTED_ACTOR: kareemlukitomo
+          TRUSTED_ACTORS: "kareemlukitomo shaquille"
         run: |
-          if [ "${{ github.actor }}" != "${TRUSTED_ACTOR}" ]; then
-            echo "::error::Untrusted actor '${{ github.actor }}'. Expected '${TRUSTED_ACTOR}'."
-            echo "::error::Stopping workflow to avoid unauthorized cache mutation."
-            exit 1
-          fi
+          actor="${{ github.actor }}"
+          for trusted_actor in ${TRUSTED_ACTORS}; do
+            if [ "${actor}" = "${trusted_actor}" ]; then
+              exit 0
+            fi
+          done
+
+          echo "::error::Untrusted actor '${actor}'. Expected one of: ${TRUSTED_ACTORS}."
+          echo "::error::Stopping workflow to avoid unauthorized cache mutation."
+          exit 1
 
       - name: Checkout repository
         uses: actions/checkout@v4
